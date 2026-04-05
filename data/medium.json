@@ -1,0 +1,67 @@
+[
+  {
+    "id": "medium_1",
+    "code": "for i in range(len(arr)):\n    for j in range(len(arr)):\n        print(arr[i], arr[j])",
+    "language": "python",
+    "context": "Nested loop inefficiency",
+    "issues": [
+      {
+        "type": "optimization",
+        "line": 1,
+        "message": "Nested loop leads to O(n^2) complexity"
+      }
+    ]
+  },
+  {
+    "id": "medium_2",
+    "code": "def divide(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return None",
+    "language": "python",
+    "context": "Silent failure",
+    "issues": [
+      {
+        "type": "bug",
+        "line": 4,
+        "message": "Returning None hides error"
+      }
+    ]
+  },
+  {
+    "id": "medium_3",
+    "code": "user_input = input()\nprint('Hello ' + user_input)",
+    "language": "python",
+    "context": "No input validation",
+    "issues": [
+      {
+        "type": "bug",
+        "line": 1,
+        "message": "Missing input validation"
+      }
+    ]
+  },
+  {
+    "id": "medium_4",
+    "code": "data = []\nfor i in range(1000):\n    data.append(i*i)",
+    "language": "python",
+    "context": "Inefficient list building",
+    "issues": [
+      {
+        "type": "optimization",
+        "line": 2,
+        "message": "Use list comprehension"
+      }
+    ]
+  },
+  {
+    "id": "medium_5",
+    "code": "def process(items):\n    result = []\n    for i in range(len(items)):\n        result.append(items[i]*2)\n    return result",
+    "language": "python",
+    "context": "Inefficient iteration",
+    "issues": [
+      {
+        "type": "optimization",
+        "line": 3,
+        "message": "Use direct iteration instead of index"
+      }
+    ]
+  }
+]

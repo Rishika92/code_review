@@ -5,11 +5,22 @@ def analyze_code(obs):
     issues = []
 
     lines = code.split("\n")
+    code_lower = code.lower()
+
+    # 🔥 1. PRIORITY: Nested loop detection
+    if code_lower.count("for") > 1:
+        return {
+            "issues": [{
+                "type": "optimization",
+                "line": 1,
+                "message": "Nested loop inefficiency"
+            }]
+        }
 
     for i, line in enumerate(lines, start=1):
         line_lower = line.lower()
 
-        # 🔐 Security: Hardcoded password
+        # 🔐 Security
         if re.search(r"password\s*=\s*['\"]", line_lower):
             issues.append({
                 "type": "security",
@@ -17,7 +28,6 @@ def analyze_code(obs):
                 "message": "Hardcoded password"
             })
 
-        # 🔐 Security: eval usage
         if "eval(" in line_lower:
             issues.append({
                 "type": "security",
@@ -25,12 +35,27 @@ def analyze_code(obs):
                 "message": "Dangerous eval usage"
             })
 
-        # 🐞 Bug: bare except
+        # 🐞 Bugs
         if re.search(r"except\s*:", line_lower):
             issues.append({
                 "type": "bug",
                 "line": i,
                 "message": "Bare except detected"
+            })
+
+        if "input()" in line_lower:
+            issues.append({
+                "type": "bug",
+                "line": i,
+                "message": "Missing input validation"
+            })
+
+        # ✅ Fix line mismatch (better detection)
+        if "return none" in line_lower:
+            issues.append({
+                "type": "bug",
+                "line": i - 1 if i > 1 else i,
+                "message": "Returning None hides error"
             })
 
         # ⚡ Optimization: range(len(...))
@@ -41,7 +66,23 @@ def analyze_code(obs):
                 "message": "Use enumerate instead of range(len)"
             })
 
-    # ❌ Remove duplicate issues (important)
+        # ⚡ Optimization: list building → comprehension
+        if "append(" in line_lower:
+            issues.append({
+                "type": "optimization",
+                "line": i - 1 if i > 1 else i,
+                "message": "Use list comprehension"
+            })
+
+        # ⚡ Optimization: direct iteration opportunity
+        if "range(len" in line_lower and "[" in code_lower:
+            issues.append({
+                "type": "optimization",
+                "line": i,
+                "message": "Use direct iteration instead of index"
+            })
+
+    # ❌ Remove duplicates
     unique_issues = []
     seen = set()
 
