@@ -1,7 +1,7 @@
 import json
 from agent.baseline import analyze_code
 
-with open("data/medium.json") as f:
+with open("data/hard.json") as f:
     data = json.load(f)
 
 print("Loaded samples:", len(data))  # 👈 ADD THIS

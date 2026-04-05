@@ -1,0 +1,67 @@
+[
+  {
+    "id": "hard_1",
+    "code": "user_input = input()\neval(user_input)",
+    "language": "python",
+    "context": "Dangerous eval usage",
+    "issues": [
+      {
+        "type": "security",
+        "line": 2,
+        "message": "Use of eval is dangerous"
+      }
+    ]
+  },
+  {
+    "id": "hard_2",
+    "code": "query = \"SELECT * FROM users WHERE id = \" + user_input",
+    "language": "python",
+    "context": "SQL injection risk",
+    "issues": [
+      {
+        "type": "security",
+        "line": 1,
+        "message": "Possible SQL injection"
+      }
+    ]
+  },
+  {
+    "id": "hard_3",
+    "code": "if user.is_admin == \"True\":\n    print(\"Access granted\")",
+    "language": "python",
+    "context": "Type mismatch",
+    "issues": [
+      {
+        "type": "bug",
+        "line": 1,
+        "message": "Boolean compared to string"
+      }
+    ]
+  },
+  {
+    "id": "hard_4",
+    "code": "for i in range(n):\n    for j in range(n):\n        for k in range(n):\n            print(i, j, k)",
+    "language": "python",
+    "context": "High complexity",
+    "issues": [
+      {
+        "type": "optimization",
+        "line": 1,
+        "message": "O(n^3) complexity"
+      }
+    ]
+  },
+  {
+    "id": "hard_5",
+    "code": "password = input()\nif password == \"1234\":\n    print(\"Logged in\")",
+    "language": "python",
+    "context": "Weak authentication",
+    "issues": [
+      {
+        "type": "security",
+        "line": 2,
+        "message": "Hardcoded password check"
+      }
+    ]
+  }
+]
