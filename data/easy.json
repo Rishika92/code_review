@@ -1,0 +1,132 @@
+[
+  {
+    "id": "easy_1",
+    "code": "password = '123456'",
+    "language": "python",
+    "context": "Hardcoded password",
+    "issues": [
+      {
+        "type": "security",
+        "line": 1,
+        "message": "Hardcoded credentials"
+      }
+    ]
+  },
+  {
+    "id": "easy_2",
+    "code": "try:\n    x = 1\nexcept:\n    pass",
+    "language": "python",
+    "context": "Bad exception handling",
+    "issues": [
+      {
+        "type": "bug",
+        "line": 3,
+        "message": "Bare except detected"
+      }
+    ]
+  },
+  {
+    "id": "easy_3",
+    "code": "for i in range(len(arr)):\n    print(arr[i])",
+    "language": "python",
+    "context": "Loop inefficiency",
+    "issues": [
+      {
+        "type": "optimization",
+        "line": 1,
+        "message": "Use enumerate instead of range(len)"
+      }
+    ]
+  },
+  {
+    "id": "easy_4",
+    "code": "try:\n    x = int(input())\nexcept:\n    pass",
+    "language": "python",
+    "context": "Bad exception handling",
+    "issues": [
+      {
+        "type": "bug",
+        "line": 3,
+        "message": "Bare except detected"
+      }
+    ]
+  },
+  {
+    "id": "easy_5",
+    "code": "password = \"admin123\"",
+    "language": "python",
+    "context": "Hardcoded credential",
+    "issues": [
+      {
+        "type": "security",
+        "line": 1,
+        "message": "Hardcoded password"
+      }
+    ]
+  },
+  {
+  "id": "easy_6",
+  "code": "for i in range(len(arr)):\n    print(i)",
+  "language": "python",
+  "context": "Inefficient loop",
+  "issues": [
+    {
+      "type": "optimization",
+      "line": 1,
+      "message": "Use enumerate"
+    }
+  ]
+},
+{
+  "id": "easy_7",
+  "code": "except:\n    pass",
+  "language": "python",
+  "context": "Bare except",
+  "issues": [
+    {
+      "type": "bug",
+      "line": 1,
+      "message": "Bare except detected"
+    }
+  ]
+},
+{
+  "id": "easy_8",
+  "code": "password='root'",
+  "language": "python",
+  "context": "Hardcoded password",
+  "issues": [
+    {
+      "type": "security",
+      "line": 1,
+      "message": "Hardcoded password"
+    }
+  ]
+},
+{
+  "id": "easy_9",
+  "code": "try:\n x=1\nexcept:\n pass",
+  "language": "python",
+  "context": "Bad exception",
+  "issues": [
+    {
+      "type": "bug",
+      "line": 3,
+      "message": "Bare except"
+    }
+  ]
+},
+{
+  "id": "easy_10",
+  "code": "for i in range(len(data)):\n print(data[i])",
+  "language": "python",
+  "context": "Loop inefficiency",
+  "issues": [
+    {
+      "type": "optimization",
+      "line": 1,
+      "message": "Use enumerate"
+    }
+  ]
+}
+]
