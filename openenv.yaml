@@ -1,0 +1,56 @@
+name: code-review-env
+
+description: >
+  An OpenEnv environment for automated code review.
+  The agent analyzes code snippets and detects issues such as bugs,
+  security vulnerabilities, and performance inefficiencies.
+
+version: 1.0
+
+entry_point: env.environment:CodeReviewEnv
+
+tasks:
+  - id: easy
+    description: Basic code review tasks with simple patterns
+    data_path: data/easy.json
+
+  - id: medium
+    description: Intermediate tasks with logical reasoning
+    data_path: data/medium.json
+
+  - id: hard
+    description: Complex tasks involving security and performance
+    data_path: data/hard.json
+
+observation_space:
+  type: object
+  properties:
+    code:
+      type: string
+    language:
+      type: string
+    context:
+      type: string
+
+action_space:
+  type: object
+  properties:
+    issues:
+      type: array
+      items:
+        type: object
+        properties:
+          type:
+            type: string
+          line:
+            type: integer
+          message:
+            type: string
+
+reward:
+  type: float
+  description: >
+    Reward is computed based on matching predicted issues with expected issues.
+    Score ranges from 0.0 to 1.0.
+
+max_steps: 100
