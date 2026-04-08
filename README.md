@@ -1,6 +1,6 @@
-# 🧠 Code Review Agent (OpenEnv)
+# Code Review Agent (OpenEnv)
 
-## 🚀 Overview
+##  Overview
 
 This project implements an AI-driven code review environment where an agent analyzes code and identifies issues such as:
 
@@ -12,7 +12,7 @@ The system follows the OpenEnv framework and simulates real-world developer work
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 Dataset → Agent → Action → Evaluation → Output
 
@@ -25,7 +25,7 @@ Dataset → Agent → Action → Evaluation → Output
 
 ---
 
-## 🧠 Approach
+## Approach
 
 We built a rule-based static analysis agent with context-aware detection to reduce false positives and improve accuracy.
 
@@ -37,22 +37,22 @@ We built a rule-based static analysis agent with context-aware detection to redu
 
 ---
 
-## 🔍 Features
+##  Features
 
-### 🔐 Security
+###  Security
 
 - eval() detection  
 - SQL injection patterns  
 - Hardcoded passwords  
 
-### 🐞 Bugs
+### Bugs
 
 - Bare except  
 - Missing validation  
 - Silent failure  
 - Type mismatch  
 
-### ⚡ Optimization
+### Optimization
 
 - Nested loops  
 - Inefficient iteration  
@@ -60,7 +60,7 @@ We built a rule-based static analysis agent with context-aware detection to redu
 
 ---
 
-## 📊 Dataset
+##  Dataset
 
 | Level  | Description           |
 |--------|----------------------|
@@ -70,7 +70,7 @@ We built a rule-based static analysis agent with context-aware detection to redu
 
 ---
 
-## 🧠 Observation Space
+##  Observation Space
 
 The agent receives:
 
@@ -80,7 +80,7 @@ The agent receives:
 
 ---
 
-## 🎯 Action Space
+##  Action Space
 
 The agent outputs:
 
@@ -90,7 +90,7 @@ The agent outputs:
 
 ---
 
-## 🏆 Reward Function
+##  Reward Function
 
 Reward is computed by comparing predicted issues with expected issues:
 
@@ -100,7 +100,7 @@ Reward is computed by comparing predicted issues with expected issues:
 
 ---
 
-## 🧪 Run
+##  Run
 
 ```bash
 python inference.py
