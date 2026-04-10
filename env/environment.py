@@ -33,7 +33,7 @@ class CodeReviewEnv:
             "context": sample.get("context", "")
         }
 
-        # ✅ FIX: DO NOT REMOVE PREDICTIONS
+        # ✅ KEEP ALL PREDICTIONS (NO SLICING BUG)
         result = analyze_code(obs)
         predicted = result.get("issues", [])
 
@@ -44,13 +44,8 @@ class CodeReviewEnv:
             if any(p["type"] == e["type"] and p["line"] == e["line"] for e in expected)
         )
 
-        reward = correct / len(expected) if expected else 0.5
-
-        # ✅ CRITICAL FIX: STRICT RANGE (0,1)
-        if reward <= 0.0:
-            reward = 0.3
-        elif reward >= 1.0:
-            reward = 0.7
+        # 🔥 FINAL FIX: ALWAYS BETWEEN (0,1)
+        reward = (correct + 0.5) / (len(expected) + 1)
 
         # Move to next task
         self.current_task_idx += 1
