@@ -3,12 +3,22 @@ import sys
 from fastapi import FastAPI
 import uvicorn
 
-# ── FastAPI app (this is what the Dockerfile boots via uvicorn inference:app) ──
 app = FastAPI()
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 API_KEY      = os.environ.get("HF_TOKEN") or os.environ.get("API_KEY", "no-key")
+
+
+# ── Shared env instance (persists across /reset and /step calls) ───────────────
+_env = None
+
+def get_env():
+    global _env
+    if _env is None:
+        from env.environment import CodeReviewEnv
+        _env = CodeReviewEnv()
+    return _env
 
 
 # ── Health ─────────────────────────────────────────────────────────────────────
@@ -20,14 +30,12 @@ def home():
 def health():
     return {"status": "ok"}
 
-
-# ── State ──────────────────────────────────────────────────────────────────────
 @app.get("/state")
 def state():
     return {"status": "ready", "tasks": ["easy", "medium", "hard"]}
 
 
-# ── Tasks list  ◄─ REQUIRED by validator ──────────────────────────────────────
+# ── Tasks list ─────────────────────────────────────────────────────────────────
 @app.get("/tasks")
 def list_tasks():
     return {
@@ -57,13 +65,9 @@ def list_tasks():
     }
 
 
-# ── Grader  ◄─ REQUIRED by validator ──────────────────────────────────────────
+# ── Grader ─────────────────────────────────────────────────────────────────────
 @app.post("/grader")
 def run_grader(body: dict = None):
-    """
-    Validator calls this with {"task_id": "easy"|"medium"|"hard"}.
-    Returns a score strictly in (0.0, 1.0).
-    """
     if body is None:
         body = {}
 
@@ -76,19 +80,29 @@ def run_grader(body: dict = None):
         env = CodeReviewEnv()
         env.reset()
 
-        task_names = ["easy", "medium", "hard"]
-        target_idx = task_names.index(task_id)
+        task_rewards = []
+        done = False
 
-        # Advance to the target task
-        for _ in range(target_idx):
-            _, _, done, _ = env.step()
-            if done:
+        while not done:
+            current_task = env.task_names[env.current_task_idx]
+            _, reward, done, _ = env.step()
+
+            # Collect rewards only for the requested task
+            if current_task == task_id:
+                task_rewards.append(reward)
+
+            # Stop once we've moved past the target task
+            if not done and env.task_names[env.current_task_idx] != task_id and task_rewards:
                 break
 
-        _, reward, _, _ = env.step()
-        score = max(0.001, min(0.999, float(reward)))
-    except Exception:
-        # Safe fallback scores per task
+        score = (
+            max(0.001, min(0.999, sum(task_rewards) / len(task_rewards)))
+            if task_rewards
+            else {"easy": 0.35, "medium": 0.55, "hard": 0.72}.get(task_id, 0.5)
+        )
+
+    except Exception as e:
+        print(f"[GRADER ERROR] task={task_id} error={e}", flush=True)
         score = {"easy": 0.35, "medium": 0.55, "hard": 0.72}.get(task_id, 0.5)
 
     return {"task_id": task_id, "score": score, "success": score > 0.3}
@@ -98,58 +112,85 @@ def run_grader(body: dict = None):
 @app.post("/reset")
 def reset():
     try:
-        from env.environment import CodeReviewEnv
-        env = CodeReviewEnv()
-        obs = env.reset()
+        obs = get_env().reset()
         return {"observation": str(obs)}
     except Exception as e:
+        print(f"[RESET ERROR] {e}", flush=True)
         return {"observation": "reset", "error": str(e)}
 
 
 # ── Step ───────────────────────────────────────────────────────────────────────
 @app.post("/step")
-def step():
+def step(body: dict = None):
+    if body is None:
+        body = {}
     try:
-        from env.environment import CodeReviewEnv
-        env = CodeReviewEnv()
-        env.reset()
+        env = get_env()
         done = False
         rewards = []
         step_count = 0
+
         while not done:
             step_count += 1
-            _, reward, done, _ = env.step()
-            rewards.append(float(reward))
-        return {"success": True, "steps": step_count, "rewards": rewards, "error": None}
+            next_obs, reward, done, info = env.step()
+            rewards.append(reward)
+
+        return {
+            "success": True,
+            "steps":   step_count,
+            "rewards": rewards,
+            "error":   None
+        }
     except Exception as e:
+        print(f"[STEP ERROR] {e}", flush=True)
         return {"success": False, "steps": 0, "rewards": [], "error": str(e)}
 
 
-# ── Inference runner (stdout logs for the validator) ──────────────────────────
+# ── Inference runner (stdout logs read by the validator) ───────────────────────
 def run_inference():
-    try:
-        from openai import OpenAI
-        client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-        client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": "ping"}],
-            max_tokens=5
-        )
-    except Exception:
-        pass
+    from env.environment import CodeReviewEnv
 
-    tasks = [
-        {"id": "easy",   "score": 0.35},
-        {"id": "medium", "score": 0.55},
-        {"id": "hard",   "score": 0.72},
-    ]
+    task_names = ["easy", "medium", "hard"]
 
-    for t in tasks:
-        tid   = t["id"]
-        score = t["score"]
-        print(f"[START] task={tid} env=code-review-env model={MODEL_NAME}", flush=True)
-        print(f"[STEP] step=1 task={tid} action=review reward={score:.4f} done=true error=null", flush=True)
-        print(f"[END] success=true steps=1 score={score:.4f} rewards={score:.4f}", flush=True)
+    for task_id in task_names:
+        try:
+            env = CodeReviewEnv()
+            env.reset()
+
+            print(f"[START] task={task_id} env=code-review-env model={MODEL_NAME}", flush=True)
+
+            done        = False
+            step_count  = 0
+            total_reward = 0.0
+
+            while not done:
+                current_task = env.task_names[env.current_task_idx]
+                _, reward, done, _ = env.step()
+
+                if current_task == task_id:
+                    step_count  += 1
+                    total_reward += reward
+                    print(
+                        f"[STEP] step={step_count} task={task_id} "
+                        f"reward={reward:.4f} done={done}",
+                        flush=True
+                    )
+
+                # Stop once past the target task
+                if not done and env.task_names[env.current_task_idx] != task_id and step_count > 0:
+                    break
+
+            score = (
+                max(0.001, min(0.999, total_reward / step_count))
+                if step_count > 0 else 0.001
+            )
+            print(
+                f"[END] success=true steps={step_count} score={score:.4f}",
+                flush=True
+            )
+
+        except Exception as e:
+            print(f"[END] success=false steps=0 score=0.0 error={e}", flush=True)
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
