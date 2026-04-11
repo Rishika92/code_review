@@ -1,9 +1,10 @@
 import os
+import uvicorn
 from fastapi import FastAPI
 
 app = FastAPI()
 
-# Lazy-load env so import errors don't crash the whole server on startup
+# Lazy-load env so import errors don't crash the server on startup
 _env = None
 
 def get_env():
@@ -97,7 +98,6 @@ def run_grader(body: dict = None):
             sum(task_rewards) / len(task_rewards)
             if task_rewards else FALLBACK[task_id]
         )
-        # Clamp strictly inside (0, 1)
         score = max(0.001, min(0.999, float(raw)))
 
     except Exception as e:
@@ -141,6 +141,14 @@ def step(body: dict = None):
         return {"success": False, "steps": 0, "rewards": [], "error": str(e)}
 
 
-# ── NO uvicorn.run() here ─────────────────────────────────────────────────────
-# The HF Space runtime starts this app on port 7860 automatically.
-# Calling uvicorn.run() from __main__ would try to bind 7860 a second time → crash.
+# ── Entry point ───────────────────────────────────────────────────────────────
+# main() is REQUIRED by the Phase 1 validator check.
+# uvicorn is started here when run directly (python server/app.py).
+# When the HF Space runtime imports this module, main() is NOT called,
+# so there is no double-bind on port 7860.
+def main():
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860, reload=False)
+
+
+if __name__ == "__main__":
+    main()
